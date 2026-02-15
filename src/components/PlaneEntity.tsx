@@ -22,10 +22,11 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       initialState.lat,
       initialState.altitude,
     );
+    // Cesium HPR axes are swapped vs aviation: "pitch" = banking, "roll" = nose pitch
     const hpr = new HeadingPitchRoll(
       CesiumMath.toRadians(initialState.heading),
-      0,
-      0,
+      0, // banking (Cesium "pitch")
+      0, // nose pitch (Cesium "roll")
     );
 
     const entity = viewer.entities.add({

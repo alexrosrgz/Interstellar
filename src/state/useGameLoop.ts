@@ -72,8 +72,8 @@ export function useGameLoop(
     const position = Cartesian3.fromDegrees(flight.lon, flight.lat, flight.altitude);
     const hpr = new HeadingPitchRoll(
       CesiumMath.toRadians(flight.heading),
-      flight.pitch,
-      flight.roll,
+      -flight.roll,  // Cesium "pitch" = forward-axis rotation = aviation banking
+      flight.pitch,   // Cesium "roll" = lateral-axis rotation = aviation nose up/down
     );
 
     (entity.position as any).setValue(position);

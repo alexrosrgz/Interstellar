@@ -49,7 +49,7 @@ export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, 
   const heading = (state.heading + turnInput * TURN_RATE * dt + 360) % 360;
 
   // Visual roll (banking)
-  const targetRoll = -turnInput * MAX_ROLL;
+  const targetRoll = turnInput * MAX_ROLL;
   const roll = lerp(state.roll, targetRoll, ROLL_LERP, dt);
 
   // Visual pitch
@@ -64,13 +64,17 @@ export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, 
   const dist = speed * speedMultiplier * dt;
   const angularDist = dist / EARTH_RADIUS;
 
+  // Detect pole crossing
+  const approxNewLat = state.lat + (angularDist / DEG_TO_RAD) * Math.cos(headingRad);
+  const crossedPole = approxNewLat > 90 || approxNewLat < -90;
+
   const latRad = state.lat * DEG_TO_RAD;
   const lonRad = state.lon * DEG_TO_RAD;
 
-  const newLatRad = Math.asin(
+  const sinNewLat =
     Math.sin(latRad) * Math.cos(angularDist) +
-    Math.cos(latRad) * Math.sin(angularDist) * Math.cos(headingRad),
-  );
+    Math.cos(latRad) * Math.sin(angularDist) * Math.cos(headingRad);
+  const newLatRad = Math.asin(Math.max(-1, Math.min(1, sinNewLat)));
   const newLonRad =
     lonRad +
     Math.atan2(
@@ -82,11 +86,13 @@ export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, 
   let lon = newLonRad / DEG_TO_RAD;
 
   // Wrap longitude to [-180, 180]
-  if (lon > 180) lon -= 360;
-  if (lon < -180) lon += 360;
+  lon = ((lon + 540) % 360) - 180;
 
-  // Clamp latitude
-  lat = Math.max(-89.9, Math.min(89.9, lat));
+  // Flip heading when crossing a pole
+  let finalHeading = heading;
+  if (crossedPole) {
+    finalHeading = (heading + 180) % 360;
+  }
 
-  return { lon, lat, altitude, heading, speed, roll, pitch };
+  return { lon, lat, altitude, heading: finalHeading, speed, roll, pitch };
 }
