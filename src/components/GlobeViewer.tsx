@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Viewer as CesiumViewer,
-  createWorldTerrainAsync,
+  Cesium3DTileset,
   Cartesian3,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
@@ -35,10 +35,7 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
     initRef.current = true;
 
     async function init() {
-      const terrain = await createWorldTerrainAsync();
-
       const viewer = new CesiumViewer(containerRef.current!, {
-        terrainProvider: terrain,
         scene3DOnly: true,
         animation: false,
         timeline: false,
@@ -52,6 +49,10 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
         selectionIndicator: false,
         creditContainer: document.createElement("div"),
       });
+
+      const tileset = await Cesium3DTileset.fromIonAssetId(2275207);
+      viewer.scene.primitives.add(tileset);
+      viewer.scene.globe.show = false;
 
       // Disable all default camera inputs (we handle camera ourselves)
       const sc = viewer.scene.screenSpaceCameraController;
