@@ -1,0 +1,11 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --panel-bg: rgba(10, 15, 30, 0.75);
+  --panel-border: rgba(100, 160, 255, 0.25);
+  --text-primary: #e8edf5;
+  --text-secondary: #8899bb;
+  --accent: #4da6ff;
+}

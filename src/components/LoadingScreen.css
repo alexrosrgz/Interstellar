@@ -1,0 +1,50 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050a18;
+  z-index: 1000;
+  animation: fadeOut 0.6s ease 0.3s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.loading-screen__content {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.loading-screen__title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  margin: 0 0 8px;
+  color: var(--accent);
+}
+
+.loading-screen__subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 32px;
+}
+
+.loading-screen__spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  border: 2px solid var(--panel-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
