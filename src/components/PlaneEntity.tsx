@@ -37,7 +37,7 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       position,
       orientation: orientation as any,
       model: {
-        uri: "/models/f22_raptor.glb",
+        uri: "/models/lockheed_martin_f-22_raptor.glb",
         minimumPixelSize: 200,
       },
     });
