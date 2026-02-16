@@ -33,10 +33,8 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       position,
       orientation: Transforms.headingPitchRollQuaternion(position, hpr) as any,
       model: {
-        uri: "/models/plane.glb",
+        uri: "/models/f-35_lightning_ii_-_fighter_jet_-_free.glb",
         minimumPixelSize: 200,
-        silhouetteColor: { red: 0.3, green: 0.6, blue: 1.0, alpha: 0.6 } as any,
-        silhouetteSize: 1,
       },
     });
 
