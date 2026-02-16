@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import {
   Cartesian3,
   HeadingPitchRoll,
+  Quaternion,
   Transforms,
   Math as CesiumMath,
   type Viewer,
@@ -22,21 +23,22 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       initialState.lat,
       initialState.altitude,
     );
-    // Cesium HPR axes are swapped vs aviation: "pitch" = banking, "roll" = nose pitch
     const hpr = new HeadingPitchRoll(
       CesiumMath.toRadians(initialState.heading),
       0, // banking (Cesium "pitch")
       0, // nose pitch (Cesium "roll")
     );
+    const modelOffset = Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(-Math.PI / 2, 0, 0));
+    const flightQuat = Transforms.headingPitchRollQuaternion(position, hpr);
+    const orientation = Quaternion.multiply(flightQuat, modelOffset, new Quaternion());
 
+    // F-22 Raptor model by NLM (CC-BY) — https://sketchfab.com/3d-models/f22-raptor-free-2a64abf0866a405c865466c7642ca689
     const entity = viewer.entities.add({
       position,
-      orientation: Transforms.headingPitchRollQuaternion(position, hpr) as any,
+      orientation: orientation as any,
       model: {
-        uri: "/models/plane.glb",
+        uri: "/models/f22_raptor.glb",
         minimumPixelSize: 200,
-        silhouetteColor: { red: 0.3, green: 0.6, blue: 1.0, alpha: 0.6 } as any,
-        silhouetteSize: 1,
       },
     });
 

@@ -2,6 +2,7 @@ import { useRef, useCallback } from "react";
 import {
   Cartesian3,
   HeadingPitchRoll,
+  Quaternion,
   Transforms,
   Math as CesiumMath,
   type Viewer,
@@ -14,7 +15,11 @@ import { useCountryDetection } from "../geo/useCountryDetection";
 import { BASE_CHASE_DISTANCE } from "../flight/constants";
 import type { CountryInfo } from "../data/types";
 
-const MIN_CHASE_DISTANCE = 20;
+const MIN_CHASE_DISTANCE = 5;
+// Local-space rotation to align F-22 model's forward axis with Cesium's expected forward
+const MODEL_OFFSET_QUAT = Quaternion.fromHeadingPitchRoll(
+  new HeadingPitchRoll(-Math.PI / 2, 0, 0),
+);
 const MAX_CHASE_DISTANCE = 15_000_000;
 const CHASE_HEIGHT_RATIO = 30 / 80; // height / distance at default zoom
 
@@ -29,7 +34,7 @@ export function useGameLoop(
   const checkCountry = useCountryDetection(onCountryChange);
   const entityRef = useRef<Entity | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
-  const chaseDistRef = useRef(300);
+  const chaseDistRef = useRef(80);
 
   const setEntity = useCallback((entity: Entity) => {
     entityRef.current = entity;
@@ -75,11 +80,11 @@ export function useGameLoop(
       -flight.roll,  // Cesium "pitch" = forward-axis rotation = aviation banking
       flight.pitch,   // Cesium "roll" = lateral-axis rotation = aviation nose up/down
     );
+    const flightQuat = Transforms.headingPitchRollQuaternion(position, hpr);
+    const orientationQuat = Quaternion.multiply(flightQuat, MODEL_OFFSET_QUAT, new Quaternion());
 
     (entity.position as any).setValue(position);
-    (entity.orientation as any).setValue(
-      Transforms.headingPitchRollQuaternion(position, hpr),
-    );
+    (entity.orientation as any).setValue(orientationQuat);
 
     // 3. Chase camera with orbit-mode blending at far distances
     const ORBIT_START = 500_000;
