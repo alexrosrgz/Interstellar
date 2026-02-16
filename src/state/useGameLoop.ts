@@ -16,9 +16,8 @@ import { BASE_CHASE_DISTANCE } from "../flight/constants";
 import type { CountryInfo } from "../data/types";
 
 const MIN_CHASE_DISTANCE = 5;
-// Local-space rotation to align F-22 model's forward axis with Cesium's expected forward
 const MODEL_OFFSET_QUAT = Quaternion.fromHeadingPitchRoll(
-  new HeadingPitchRoll(-Math.PI / 2, 0, 0),
+  new HeadingPitchRoll(Math.PI, 0, 0),
 );
 const MAX_CHASE_DISTANCE = 15_000_000;
 const CHASE_HEIGHT_RATIO = 30 / 80; // height / distance at default zoom

@@ -28,11 +28,10 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       0, // banking (Cesium "pitch")
       0, // nose pitch (Cesium "roll")
     );
-    const modelOffset = Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(-Math.PI / 2, 0, 0));
+    const modelOffset = Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(Math.PI, 0, 0));
     const flightQuat = Transforms.headingPitchRollQuaternion(position, hpr);
     const orientation = Quaternion.multiply(flightQuat, modelOffset, new Quaternion());
 
-    // F-22 Raptor model by NLM (CC-BY) — https://sketchfab.com/3d-models/f22-raptor-free-2a64abf0866a405c865466c7642ca689
     const entity = viewer.entities.add({
       position,
       orientation: orientation as any,
