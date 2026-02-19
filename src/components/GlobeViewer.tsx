@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Viewer as CesiumViewer,
-  createWorldTerrainAsync,
+  Cesium3DTileset,
   Cartesian3,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
@@ -9,6 +9,7 @@ import {
   Color,
   JulianDate,
   PolylineGraphics,
+  PolylineDashMaterialProperty,
 } from "cesium";
 import { loadCountries } from "../geo/countryLookup";
 import { useGameLoop } from "../state/useGameLoop";
@@ -35,10 +36,7 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
     initRef.current = true;
 
     async function init() {
-      const terrain = await createWorldTerrainAsync();
-
       const viewer = new CesiumViewer(containerRef.current!, {
-        terrainProvider: terrain,
         scene3DOnly: true,
         animation: false,
         timeline: false,
@@ -52,6 +50,10 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
         selectionIndicator: false,
         creditContainer: document.createElement("div"),
       });
+
+      const tileset = await Cesium3DTileset.fromIonAssetId(2275207);
+      viewer.scene.primitives.add(tileset);
+      viewer.scene.globe.show = false;
 
       // Disable all default camera inputs (we handle camera ourselves)
       const sc = viewer.scene.screenSpaceCameraController;
@@ -105,6 +107,31 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
         }
       }
       viewer.dataSources.add(borders);
+
+      // Load US state borders with dashed lines
+      const states = await GeoJsonDataSource.load("/data/us-states.geojson", {
+        stroke: Color.fromAlpha(Color.WHITE, 0.3),
+        fill: Color.TRANSPARENT,
+        strokeWidth: 1,
+      });
+      for (const entity of states.entities.values) {
+        if (entity.polygon) {
+          const hierarchy = entity.polygon.hierarchy?.getValue(now);
+          if (hierarchy) {
+            entity.polyline = new PolylineGraphics({
+              positions: [...hierarchy.positions, hierarchy.positions[0]],
+              clampToGround: true,
+              material: new PolylineDashMaterialProperty({
+                color: Color.fromAlpha(Color.WHITE, 0.3),
+                dashLength: 16,
+              }),
+              width: 1,
+            });
+          }
+          entity.polygon = undefined as any;
+        }
+      }
+      viewer.dataSources.add(states);
 
       // Register preRender callback
       viewer.scene.preRender.addEventListener(tick);
