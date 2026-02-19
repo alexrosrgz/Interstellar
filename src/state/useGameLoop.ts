@@ -5,6 +5,8 @@ import {
   Quaternion,
   Transforms,
   Math as CesiumMath,
+  ScreenSpaceEventHandler,
+  ScreenSpaceEventType,
   type Viewer,
   type Entity,
 } from "cesium";
@@ -15,7 +17,7 @@ import { useCountryDetection } from "../geo/useCountryDetection";
 import { BASE_CHASE_DISTANCE } from "../flight/constants";
 import type { CountryInfo } from "../data/types";
 
-const MIN_CHASE_DISTANCE = 5;
+const MIN_CHASE_DISTANCE = 30;
 const MODEL_OFFSET_QUAT = Quaternion.fromHeadingPitchRoll(
   new HeadingPitchRoll(Math.PI, 0, 0),
 );
@@ -35,6 +37,11 @@ export function useGameLoop(
   const viewerRef = useRef<Viewer | null>(null);
   const chaseDistRef = useRef(80);
   const pausedRef = useRef(false);
+  const freeLookYawRef = useRef(0);
+  const freeLookPitchRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const recenteringRef = useRef(false);
+  const freeLookHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
 
   // Toggle pause on P key
   useEffect(() => {
@@ -60,6 +67,44 @@ export function useGameLoop(
       MIN_CHASE_DISTANCE,
       Math.min(MAX_CHASE_DISTANCE, chaseDistRef.current + delta),
     );
+  }, []);
+
+  const setupFreeLook = useCallback((viewer: Viewer) => {
+    destroyFreeLook();
+    const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
+
+    handler.setInputAction(() => {
+      isDraggingRef.current = true;
+      recenteringRef.current = false;
+    }, ScreenSpaceEventType.LEFT_DOWN);
+
+    handler.setInputAction((movement: { startPosition: { x: number; y: number }; endPosition: { x: number; y: number } }) => {
+      if (!isDraggingRef.current) return;
+      const dx = movement.endPosition.x - movement.startPosition.x;
+      const dy = movement.endPosition.y - movement.startPosition.y;
+      freeLookYawRef.current += dx * 0.005;
+      freeLookPitchRef.current = Math.max(
+        -0.2,
+        Math.min(Math.PI / 2, freeLookPitchRef.current + dy * 0.005),
+      );
+    }, ScreenSpaceEventType.MOUSE_MOVE);
+
+    handler.setInputAction(() => {
+      isDraggingRef.current = false;
+    }, ScreenSpaceEventType.LEFT_UP);
+
+    handler.setInputAction(() => {
+      recenteringRef.current = true;
+    }, ScreenSpaceEventType.RIGHT_CLICK);
+
+    freeLookHandlerRef.current = handler;
+  }, []);
+
+  const destroyFreeLook = useCallback(() => {
+    if (freeLookHandlerRef.current) {
+      freeLookHandlerRef.current.destroy();
+      freeLookHandlerRef.current = null;
+    }
   }, []);
 
   const tick = useCallback(() => {
@@ -115,11 +160,42 @@ export function useGameLoop(
 
     // Always keep some "behind" offset so the plane is seen from behind (pointing forward)
     const behindFactor = Math.max(0.15, 1 - orbitBlend);
-    const offset = new Cartesian3(
-      chaseX * behindFactor,
-      chaseY * behindFactor,
-      chaseZ + (chaseDist - chaseZ) * orbitBlend,
-    );
+    let offX = chaseX * behindFactor;
+    let offY = chaseY * behindFactor;
+    let offZ = chaseZ + (chaseDist - chaseZ) * orbitBlend;
+
+    // Smooth recenter: exponential decay toward 0 (~95% done in 0.2s)
+    if (recenteringRef.current) {
+      const decay = Math.exp(-15 * dt);
+      freeLookYawRef.current *= decay;
+      freeLookPitchRef.current *= decay;
+      if (Math.abs(freeLookYawRef.current) < 0.001 && Math.abs(freeLookPitchRef.current) < 0.001) {
+        freeLookYawRef.current = 0;
+        freeLookPitchRef.current = 0;
+        recenteringRef.current = false;
+      }
+    }
+
+    // Apply free-look yaw (rotate around Z axis in ENU frame)
+    const yaw = freeLookYawRef.current;
+    const pitch = freeLookPitchRef.current;
+    if (yaw !== 0 || pitch !== 0) {
+      const cosY = Math.cos(yaw);
+      const sinY = Math.sin(yaw);
+      const rx = offX * cosY - offY * sinY;
+      const ry = offX * sinY + offY * cosY;
+      // Pitch: tilt the offset up/down — scale horizontal distance and adjust Z
+      const horiz = Math.sqrt(rx * rx + ry * ry);
+      const cosP = Math.cos(pitch);
+      const sinP = Math.sin(pitch);
+      const newHoriz = horiz * cosP;
+      const scale = horiz > 0 ? newHoriz / horiz : 1;
+      offX = rx * scale;
+      offY = ry * scale;
+      offZ = offZ * cosP + horiz * sinP;
+    }
+
+    const offset = new Cartesian3(offX, offY, offZ);
     viewer.camera.lookAtTransform(transform, offset);
 
     // 4. Throttled country detection (every 500ms)
@@ -136,5 +212,5 @@ export function useGameLoop(
     }
   }, [keysRef, checkCountry, onFlightUpdate]);
 
-  return { tick, setEntity, setViewer, flightRef, handleWheel };
+  return { tick, setEntity, setViewer, flightRef, handleWheel, setupFreeLook, destroyFreeLook };
 }

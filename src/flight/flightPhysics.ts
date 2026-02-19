@@ -35,11 +35,12 @@ export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, 
   if (keys.forward) speed = Math.min(MAX_SPEED, speed + SPEED_STEP * dt);
   if (keys.backward) speed = Math.max(MIN_SPEED, speed - SPEED_STEP * dt);
 
-  // Altitude (scaled by zoom multiplier)
+  // Altitude — rate scales with current altitude for smooth feel at all levels
   let altitude = state.altitude;
-  const altitudeMultiplier = Math.min(speedMultiplier, 100);
-  if (keys.ascend) altitude = Math.min(MAX_ALTITUDE, altitude + ALTITUDE_RATE * altitudeMultiplier * dt);
-  if (keys.descend) altitude = Math.max(MIN_ALTITUDE, altitude - ALTITUDE_RATE * altitudeMultiplier * dt);
+  const baseAltRate = Math.max(15, altitude * 0.25);
+  const altRate = Math.min(ALTITUDE_RATE, baseAltRate) * Math.min(speedMultiplier * speedMultiplier, 100);
+  if (keys.ascend) altitude = Math.min(MAX_ALTITUDE, altitude + altRate * dt);
+  if (keys.descend) altitude = Math.max(MIN_ALTITUDE, altitude - altRate * dt);
 
   // Turning
   let turnInput = 0;

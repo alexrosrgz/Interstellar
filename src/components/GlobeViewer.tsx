@@ -29,7 +29,7 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
   const viewerObjRef = useRef<CesiumViewer | null>(null);
   const initRef = useRef(false);
   const [viewerReady, setViewerReady] = useState(false);
-  const { tick, setEntity, setViewer, flightRef, handleWheel } = useGameLoop(onCountryChange, onFlightUpdate);
+  const { tick, setEntity, setViewer, flightRef, handleWheel, setupFreeLook, destroyFreeLook } = useGameLoop(onCountryChange, onFlightUpdate);
 
   useEffect(() => {
     if (initRef.current || !containerRef.current) return;
@@ -79,6 +79,7 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
 
       viewerObjRef.current = viewer;
       setViewer(viewer);
+      setupFreeLook(viewer);
 
       // Load geojson for country detection and render borders visually
       const [, borders] = await Promise.all([
@@ -144,6 +145,7 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }
     init();
 
     return () => {
+      destroyFreeLook();
       if (viewerObjRef.current) {
         viewerObjRef.current.scene.preRender.removeEventListener(tick);
         viewerObjRef.current.destroy();

@@ -17,11 +17,11 @@ export interface FlightState {
 
 export function createInitialFlightState(): FlightState {
   return {
-    lon: -40.0,
-    lat: 30.0,
-    altitude: 10_000,
-    heading: 90,
-    speed: 278,
+    lon: -74.0,
+    lat: 40.71,
+    altitude: 1_000,
+    heading: 0,
+    speed: 75,
     roll: 0,
     pitch: 0,
   };
