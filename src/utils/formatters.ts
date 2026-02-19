@@ -1,11 +1,13 @@
-export function formatPopulation(n: number): string {
+export function formatPopulation(n: number | null): string {
+  if (n === null) return "\u2014";
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + "B";
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return n.toString();
 }
 
-export function formatCurrency(n: number): string {
+export function formatCurrency(n: number | null): string {
+  if (n === null) return "\u2014";
   if (n >= 1_000_000_000_000) return "$" + (n / 1_000_000_000_000).toFixed(1) + "T";
   if (n >= 1_000_000_000) return "$" + (n / 1_000_000_000).toFixed(1) + "B";
   if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(1) + "M";
@@ -36,4 +38,30 @@ export function formatHeading(deg: number): string {
 export function formatZoom(zoom: number): string {
   if (zoom >= 10) return Math.round(zoom) + "x";
   return zoom.toFixed(1) + "x";
+}
+
+export function formatArea(km2: number | null): string {
+  if (km2 === null) return "\u2014";
+  if (km2 >= 1_000_000) return (km2 / 1_000_000).toFixed(1) + "M km\u00B2";
+  return km2.toLocaleString("en-US") + " km\u00B2";
+}
+
+export function formatDebt(usd: number | null): string {
+  if (usd === null) return "\u2014";
+  return formatCurrency(usd);
+}
+
+export function formatBirthRate(rate: number | null): string {
+  if (rate === null) return "\u2014";
+  return rate.toFixed(1) + " births/woman";
+}
+
+export function formatDebtRatio(pct: number | null): string {
+  if (pct === null) return "\u2014";
+  return pct.toFixed(1) + "%";
+}
+
+export function formatGdpPerCapita(usd: number | null): string {
+  if (usd === null) return "\u2014";
+  return "$" + Math.round(usd).toLocaleString("en-US");
 }

@@ -34,7 +34,8 @@ export async function loadCountries(): Promise<void> {
 
   entries = [];
   for (const feature of geojson.features) {
-    const iso3 = feature.properties?.ISO_A3 ?? feature.properties?.ADM0_A3 ?? "";
+    const rawIso3 = feature.properties?.ISO_A3;
+    const iso3 = (rawIso3 && rawIso3 !== "-99") ? rawIso3 : (feature.properties?.ADM0_A3 ?? "");
     const name = feature.properties?.NAME ?? feature.properties?.ADMIN ?? "";
     if (!iso3 || iso3 === "-99") continue;
 

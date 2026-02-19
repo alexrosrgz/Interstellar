@@ -1,6 +1,13 @@
-import type { CountryInfo } from "./types";
+interface HardcodedCountry {
+  name: string;
+  iso3: string;
+  population: number;
+  gdpNominal: number;
+  medianSalary: number | null;
+  governmentType: string;
+}
 
-const COUNTRY_DATA: Record<string, CountryInfo> = {
+const COUNTRY_DATA: Record<string, HardcodedCountry> = {
   // ─── North America ───
   USA: { name: "United States", iso3: "USA", population: 331900000, gdpNominal: 28780000000000, medianSalary: 56300, governmentType: "Federal presidential constitutional republic" },
   CAN: { name: "Canada", iso3: "CAN", population: 40100000, gdpNominal: 2140000000000, medianSalary: 42600, governmentType: "Federal parliamentary constitutional monarchy" },
@@ -242,9 +249,5 @@ const COUNTRY_DATA: Record<string, CountryInfo> = {
   // ─── Vatican ───
   VAT: { name: "Vatican City", iso3: "VAT", population: 800, gdpNominal: 0, medianSalary: null, governmentType: "Unitary theocratic elective absolute monarchy" },
 };
-
-export function getCountryByIso3(iso3: string): CountryInfo | undefined {
-  return COUNTRY_DATA[iso3];
-}
 
 export { COUNTRY_DATA };

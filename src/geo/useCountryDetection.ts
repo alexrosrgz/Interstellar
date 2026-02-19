@@ -1,11 +1,12 @@
 import { useRef, useCallback } from "react";
 import { findCountryAt } from "./countryLookup";
-import { getCountryByIso3 } from "../data/countryData";
+import { fetchCountryInfo } from "../data/countryApi";
 import type { CountryInfo } from "../data/types";
 
 export function useCountryDetection(onCountryChange: (country: CountryInfo | null) => void) {
   const lastIso3Ref = useRef<string | null>(null);
   const lastCheckRef = useRef(0);
+  const fetchIdRef = useRef(0);
 
   const check = useCallback(
     (lon: number, lat: number, now: number) => {
@@ -19,9 +20,14 @@ export function useCountryDetection(onCountryChange: (country: CountryInfo | nul
       if (iso3 !== lastIso3Ref.current) {
         lastIso3Ref.current = iso3;
         if (iso3) {
-          const info = getCountryByIso3(iso3);
-          onCountryChange(info ?? null);
+          const id = ++fetchIdRef.current;
+          fetchCountryInfo(iso3).then((info) => {
+            // Discard stale result if country changed while fetching
+            if (fetchIdRef.current !== id) return;
+            onCountryChange(info);
+          });
         } else {
+          fetchIdRef.current++;
           onCountryChange(null);
         }
       }
