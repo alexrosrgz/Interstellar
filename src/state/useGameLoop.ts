@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import {
   Cartesian3,
   HeadingPitchRoll,
@@ -34,6 +34,16 @@ export function useGameLoop(
   const entityRef = useRef<Entity | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const chaseDistRef = useRef(80);
+  const pausedRef = useRef(false);
+
+  // Toggle pause on P key
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.code === "KeyP") pausedRef.current = !pausedRef.current;
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const setEntity = useCallback((entity: Entity) => {
     entityRef.current = entity;
@@ -56,6 +66,10 @@ export function useGameLoop(
     const viewer = viewerRef.current;
     const entity = entityRef.current;
     if (!viewer || !entity) return;
+    if (pausedRef.current) {
+      lastTimeRef.current = 0;
+      return;
+    }
 
     const now = performance.now();
     if (lastTimeRef.current === 0) lastTimeRef.current = now;
