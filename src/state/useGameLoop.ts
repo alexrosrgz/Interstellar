@@ -26,7 +26,7 @@ const CHASE_HEIGHT_RATIO = 30 / 80; // height / distance at default zoom
 
 export function useGameLoop(
   onCountryChange: (c: CountryInfo | null) => void,
-  onFlightUpdate: (data: Pick<FlightState, "speed" | "altitude" | "heading">) => void,
+  onFlightUpdate: (data: Pick<FlightState, "speed" | "altitude" | "heading"> & { zoom: number }) => void,
 ) {
   const flightRef = useRef<FlightState>(createInitialFlightState());
   const lastTimeRef = useRef(0);
@@ -208,6 +208,7 @@ export function useGameLoop(
         speed: flight.speed * speedMultiplier,
         altitude: flight.altitude,
         heading: flight.heading,
+        zoom: chaseDist / BASE_CHASE_DISTANCE,
       });
     }
   }, [keysRef, checkCountry, onFlightUpdate]);

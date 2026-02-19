@@ -32,3 +32,8 @@ export function formatHeading(deg: number): string {
   const idx = Math.round(deg / 45) % 8;
   return Math.round(deg) + "° " + cardinals[idx];
 }
+
+export function formatZoom(zoom: number): string {
+  if (zoom >= 10) return Math.round(zoom) + "x";
+  return zoom.toFixed(1) + "x";
+}

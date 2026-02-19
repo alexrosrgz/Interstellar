@@ -11,10 +11,11 @@ import "./App.css";
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [country, setCountry] = useState<CountryInfo | null>(null);
-  const [flightHud, setFlightHud] = useState<Pick<FlightState, "speed" | "altitude" | "heading">>({
+  const [flightHud, setFlightHud] = useState<Pick<FlightState, "speed" | "altitude" | "heading"> & { zoom: number }>({
     speed: 278,
     altitude: 2_000_000,
     heading: 90,
+    zoom: 1,
   });
 
   return (
@@ -27,7 +28,7 @@ export default function App() {
       />
       {!loading && (
         <>
-          <HUD speed={flightHud.speed} altitude={flightHud.altitude} heading={flightHud.heading} />
+          <HUD speed={flightHud.speed} altitude={flightHud.altitude} heading={flightHud.heading} zoom={flightHud.zoom} />
           <InfoPanel country={country} />
           <ControlsOverlay />
         </>

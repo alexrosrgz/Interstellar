@@ -21,7 +21,7 @@ import type { FlightState } from "../flight/FlightState";
 interface Props {
   onReady: () => void;
   onCountryChange: (country: CountryInfo | null) => void;
-  onFlightUpdate: (data: Pick<FlightState, "speed" | "altitude" | "heading">) => void;
+  onFlightUpdate: (data: Pick<FlightState, "speed" | "altitude" | "heading"> & { zoom: number }) => void;
 }
 
 export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate }: Props) {

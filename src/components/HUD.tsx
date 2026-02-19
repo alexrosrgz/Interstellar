@@ -1,13 +1,14 @@
-import { formatSpeed, formatAltitude, formatHeading } from "../utils/formatters";
+import { formatSpeed, formatAltitude, formatHeading, formatZoom } from "../utils/formatters";
 import "./HUD.css";
 
 interface Props {
   speed: number;
   altitude: number;
   heading: number;
+  zoom: number;
 }
 
-export default function HUD({ speed, altitude, heading }: Props) {
+export default function HUD({ speed, altitude, heading, zoom }: Props) {
   return (
     <div className="hud">
       <div className="hud__item">
@@ -23,6 +24,11 @@ export default function HUD({ speed, altitude, heading }: Props) {
       <div className="hud__item">
         <span className="hud__label">HDG</span>
         <span className="hud__value">{formatHeading(heading)}</span>
+      </div>
+      <div className="hud__divider" />
+      <div className="hud__item">
+        <span className="hud__label">ZOM</span>
+        <span className="hud__value">{formatZoom(zoom)}</span>
       </div>
     </div>
   );
