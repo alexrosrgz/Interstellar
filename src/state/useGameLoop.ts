@@ -5,14 +5,13 @@ import {
   Quaternion,
   Transforms,
   Math as CesiumMath,
-  ScreenSpaceEventHandler,
-  ScreenSpaceEventType,
   type Viewer,
   type Entity,
 } from "cesium";
 import { updateFlight } from "../flight/flightPhysics";
 import { createInitialFlightState, type FlightState } from "../flight/FlightState";
 import { useFlightControls } from "../flight/useFlightControls";
+import { useMouseSteering } from "../flight/useMouseSteering";
 import { useCountryDetection } from "../geo/useCountryDetection";
 import { BASE_CHASE_DISTANCE } from "../flight/constants";
 import type { CountryInfo } from "../data/types";
@@ -32,6 +31,7 @@ export function useGameLoop(
   const lastTimeRef = useRef(0);
   const hudThrottleRef = useRef(0);
   const keysRef = useFlightControls();
+  const mouseSteering = useMouseSteering();
   const checkCountry = useCountryDetection(onCountryChange);
   const entityRef = useRef<Entity | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
@@ -39,9 +39,7 @@ export function useGameLoop(
   const pausedRef = useRef(false);
   const freeLookYawRef = useRef(0);
   const freeLookPitchRef = useRef(0);
-  const isDraggingRef = useRef(false);
   const recenteringRef = useRef(false);
-  const freeLookHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
 
   // Toggle pause on P key
   useEffect(() => {
@@ -69,42 +67,14 @@ export function useGameLoop(
     );
   }, []);
 
-  const setupFreeLook = useCallback((viewer: Viewer) => {
-    destroyFreeLook();
-    const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
-
-    handler.setInputAction(() => {
-      isDraggingRef.current = true;
-      recenteringRef.current = false;
-    }, ScreenSpaceEventType.LEFT_DOWN);
-
-    handler.setInputAction((movement: { startPosition: { x: number; y: number }; endPosition: { x: number; y: number } }) => {
-      if (!isDraggingRef.current) return;
-      const dx = movement.endPosition.x - movement.startPosition.x;
-      const dy = movement.endPosition.y - movement.startPosition.y;
-      freeLookYawRef.current += dx * 0.005;
-      freeLookPitchRef.current = Math.max(
-        -0.2,
-        Math.min(Math.PI / 2, freeLookPitchRef.current + dy * 0.005),
-      );
-    }, ScreenSpaceEventType.MOUSE_MOVE);
-
-    handler.setInputAction(() => {
-      isDraggingRef.current = false;
-    }, ScreenSpaceEventType.LEFT_UP);
-
-    handler.setInputAction(() => {
+  // Right-click to recenter camera
+  useEffect(() => {
+    function onContextMenu(e: MouseEvent) {
+      e.preventDefault();
       recenteringRef.current = true;
-    }, ScreenSpaceEventType.RIGHT_CLICK);
-
-    freeLookHandlerRef.current = handler;
-  }, []);
-
-  const destroyFreeLook = useCallback(() => {
-    if (freeLookHandlerRef.current) {
-      freeLookHandlerRef.current.destroy();
-      freeLookHandlerRef.current = null;
     }
+    document.addEventListener("contextmenu", onContextMenu);
+    return () => document.removeEventListener("contextmenu", onContextMenu);
   }, []);
 
   const tick = useCallback(() => {
@@ -128,7 +98,8 @@ export function useGameLoop(
     const speedMultiplier = Math.pow(chaseDist / BASE_CHASE_DISTANCE, 0.6);
 
     // 1. Update flight physics
-    const flight = updateFlight(flightRef.current, keysRef.current, dt, speedMultiplier);
+    const mouseInput = mouseSteering.consume(dt);
+    const flight = updateFlight(flightRef.current, keysRef.current, dt, speedMultiplier, mouseInput);
     flightRef.current = flight;
 
     // 2. Update entity position/orientation
@@ -211,7 +182,15 @@ export function useGameLoop(
         zoom: chaseDist / BASE_CHASE_DISTANCE,
       });
     }
-  }, [keysRef, checkCountry, onFlightUpdate]);
+  }, [keysRef, mouseSteering, checkCountry, onFlightUpdate]);
 
-  return { tick, setEntity, setViewer, flightRef, handleWheel, setupFreeLook, destroyFreeLook };
+  return {
+    tick,
+    setEntity,
+    setViewer,
+    flightRef,
+    handleWheel,
+    requestPointerLock: mouseSteering.requestLock,
+    isPointerLocked: mouseSteering.isLockedRef,
+  };
 }

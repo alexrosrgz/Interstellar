@@ -19,11 +19,13 @@ export default function ControlsOverlay() {
       }}
     >
       <div style={{ fontWeight: 600, marginBottom: 6, color: "var(--accent)" }}>Controls</div>
+      <div><kbd>Mouse</kbd> — Steer</div>
       <div><kbd>W</kbd> / <kbd>S</kbd> — Speed up / Slow down</div>
       <div><kbd>A</kbd> / <kbd>D</kbd> — Turn left / right</div>
       <div><kbd>Space</kbd> — Ascend</div>
       <div><kbd>Shift</kbd> — Descend</div>
       <div><kbd>Scroll</kbd> — Zoom</div>
+      <div><kbd>ESC</kbd> — Release mouse</div>
     </div>
   );
 }

@@ -29,7 +29,13 @@ function lerp(current: number, target: number, rate: number, dt: number): number
   return current + (target - current) * Math.min(1, rate * dt);
 }
 
-export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, speedMultiplier = 1): FlightState {
+export function updateFlight(
+  state: FlightState,
+  keys: KeysPressed,
+  dt: number,
+  speedMultiplier = 1,
+  mouseInput?: { turnInput: number; pitchInput: number },
+): FlightState {
   // Speed
   let speed = state.speed;
   if (keys.forward) speed = Math.min(MAX_SPEED, speed + SPEED_STEP * dt);
@@ -42,10 +48,10 @@ export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, 
   if (keys.ascend) altitude = Math.min(MAX_ALTITUDE, altitude + altRate * dt);
   if (keys.descend) altitude = Math.max(MIN_ALTITUDE, altitude - altRate * dt);
 
-  // Turning
-  let turnInput = 0;
-  if (keys.left) turnInput = -1;
-  if (keys.right) turnInput = 1;
+  // Turning — mouse analog + keyboard digital
+  let turnInput = mouseInput?.turnInput ?? 0;
+  if (keys.left) turnInput = Math.max(turnInput - 1, -1);
+  if (keys.right) turnInput = Math.min(turnInput + 1, 1);
 
   const heading = (state.heading + turnInput * TURN_RATE * dt + 360) % 360;
 
@@ -53,10 +59,10 @@ export function updateFlight(state: FlightState, keys: KeysPressed, dt: number, 
   const targetRoll = turnInput * MAX_ROLL;
   const roll = lerp(state.roll, targetRoll, ROLL_LERP, dt);
 
-  // Visual pitch
-  let pitchInput = 0;
-  if (keys.ascend) pitchInput = 1;
-  if (keys.descend) pitchInput = -1;
+  // Visual pitch — mouse pitch + keyboard ascend/descend
+  let pitchInput = mouseInput?.pitchInput ?? 0;
+  if (keys.ascend) pitchInput = Math.min(pitchInput + 1, 1);
+  if (keys.descend) pitchInput = Math.max(pitchInput - 1, -1);
   const targetPitch = pitchInput * MAX_PITCH;
   const pitch = lerp(state.pitch, targetPitch, PITCH_LERP, dt);
 

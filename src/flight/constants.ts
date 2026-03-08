@@ -16,3 +16,6 @@ export const ROLL_LERP = 4; // how fast roll responds
 export const PITCH_LERP = 4;
 
 export const EARTH_RADIUS = 6_371_000; // meters
+
+export const MOUSE_SENSITIVITY = 0.15; // turn-input per pixel of mouse movement
+export const MOUSE_SMOOTHING = 10;     // lerp rate for smoothing mouse input
