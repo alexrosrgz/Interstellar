@@ -2,7 +2,7 @@ export const MIN_SPEED = 75;
 export const MAX_SPEED = 750;
 export const SPEED_STEP = 150;
 
-export const MIN_ALTITUDE = 100;
+export const MIN_ALTITUDE = 0;
 export const MAX_ALTITUDE = 50_000_000;
 export const ALTITUDE_RATE = 500; // m/s
 
