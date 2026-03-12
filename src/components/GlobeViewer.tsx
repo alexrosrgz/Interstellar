@@ -52,9 +52,7 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate, 
         creditContainer: document.createElement("div"),
       });
 
-      const tileset = await Cesium3DTileset.fromUrl(
-        `https://tile.googleapis.com/v1/3dtiles/root.json?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`,
-      );
+      const tileset = await Cesium3DTileset.fromIonAssetId(2275207);
       viewer.scene.primitives.add(tileset);
       viewer.scene.globe.show = false;
 
