@@ -42,7 +42,12 @@ export default function App() {
     return () => document.removeEventListener("pointerlockchange", onLockChange);
   }, []);
 
-  const handleStart = useCallback(() => {
+  const [modelUrl, setModelUrl] = useState("/models/lockheed_martin_f-22_raptor.glb");
+  const [headingOffset, setHeadingOffset] = useState(Math.PI);
+
+  const handleStart = useCallback((selectedModelUrl: string, selectedHeadingOffset: number) => {
+    setModelUrl(selectedModelUrl);
+    setHeadingOffset(selectedHeadingOffset);
     setStarted(true);
     setPointerLockLost(false);
     requestLockRef.current?.();
@@ -57,6 +62,9 @@ export default function App() {
     <>
       {!started && <StartScreen ready={ready} onStart={handleStart} />}
       <GlobeViewer
+        modelUrl={modelUrl}
+        headingOffset={headingOffset}
+        started={started}
         onReady={() => setReady(true)}
         onCountryChange={setCountry}
         onFlightUpdate={setFlightHud}

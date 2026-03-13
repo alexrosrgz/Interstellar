@@ -19,18 +19,21 @@ import type { CountryInfo } from "../data/types";
 import type { FlightState } from "../flight/FlightState";
 
 interface Props {
+  modelUrl: string;
+  headingOffset: number;
+  started: boolean;
   onReady: () => void;
   onCountryChange: (country: CountryInfo | null) => void;
   onFlightUpdate: (data: Pick<FlightState, "speed" | "altitude" | "heading"> & { zoom: number }) => void;
   onPointerLockReady: (requestLock: () => void, isLocked: React.MutableRefObject<boolean>) => void;
 }
 
-export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate, onPointerLockReady }: Props) {
+export default function GlobeViewer({ modelUrl, headingOffset, started, onReady, onCountryChange, onFlightUpdate, onPointerLockReady }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerObjRef = useRef<CesiumViewer | null>(null);
   const initRef = useRef(false);
   const [viewerReady, setViewerReady] = useState(false);
-  const { tick, setEntity, setViewer, flightRef, handleWheel, requestPointerLock, isPointerLocked } = useGameLoop(onCountryChange, onFlightUpdate);
+  const { tick, setEntity, setViewer, flightRef, handleWheel, requestPointerLock, isPointerLocked } = useGameLoop(onCountryChange, onFlightUpdate, headingOffset);
 
   useEffect(() => {
     if (initRef.current || !containerRef.current) return;
@@ -180,10 +183,12 @@ export default function GlobeViewer({ onReady, onCountryChange, onFlightUpdate, 
         ref={containerRef}
         style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}
       />
-      {viewerReady && viewerObjRef.current && (
+      {viewerReady && viewerObjRef.current && started && (
         <PlaneEntity
           viewer={viewerObjRef.current}
           initialState={flightRef.current}
+          modelUrl={modelUrl}
+          headingOffset={headingOffset}
           onEntityReady={handleEntityReady}
         />
       )}

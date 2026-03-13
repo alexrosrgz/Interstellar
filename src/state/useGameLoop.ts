@@ -17,16 +17,16 @@ import { BASE_CHASE_DISTANCE } from "../flight/constants";
 import type { CountryInfo } from "../data/types";
 
 const MIN_CHASE_DISTANCE = 30;
-const MODEL_OFFSET_QUAT = Quaternion.fromHeadingPitchRoll(
-  new HeadingPitchRoll(Math.PI, 0, 0),
-);
 const MAX_CHASE_DISTANCE = 15_000_000;
 const CHASE_HEIGHT_RATIO = 30 / 80; // height / distance at default zoom
 
 export function useGameLoop(
   onCountryChange: (c: CountryInfo | null) => void,
   onFlightUpdate: (data: Pick<FlightState, "speed" | "altitude" | "heading"> & { zoom: number }) => void,
+  headingOffset: number,
 ) {
+  const modelOffsetRef = useRef(Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(headingOffset, 0, 0)));
+  modelOffsetRef.current = Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(headingOffset, 0, 0));
   const flightRef = useRef<FlightState>(createInitialFlightState());
   const lastTimeRef = useRef(0);
   const hudThrottleRef = useRef(0);
@@ -110,7 +110,7 @@ export function useGameLoop(
       flight.pitch,   // Cesium "roll" = lateral-axis rotation = aviation nose up/down
     );
     const flightQuat = Transforms.headingPitchRollQuaternion(position, hpr);
-    const orientationQuat = Quaternion.multiply(flightQuat, MODEL_OFFSET_QUAT, new Quaternion());
+    const orientationQuat = Quaternion.multiply(flightQuat, modelOffsetRef.current, new Quaternion());
 
     (entity.position as any).setValue(position);
     (entity.orientation as any).setValue(orientationQuat);

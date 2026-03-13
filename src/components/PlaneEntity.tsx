@@ -13,10 +13,12 @@ import type { FlightState } from "../flight/FlightState";
 interface Props {
   viewer: Viewer;
   initialState: FlightState;
+  modelUrl: string;
+  headingOffset: number;
   onEntityReady: (entity: Entity) => void;
 }
 
-export default function PlaneEntity({ viewer, initialState, onEntityReady }: Props) {
+export default function PlaneEntity({ viewer, initialState, modelUrl, headingOffset, onEntityReady }: Props) {
   useEffect(() => {
     const position = Cartesian3.fromDegrees(
       initialState.lon,
@@ -28,7 +30,7 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       0, // banking (Cesium "pitch")
       0, // nose pitch (Cesium "roll")
     );
-    const modelOffset = Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(Math.PI, 0, 0));
+    const modelOffset = Quaternion.fromHeadingPitchRoll(new HeadingPitchRoll(headingOffset, 0, 0));
     const flightQuat = Transforms.headingPitchRollQuaternion(position, hpr);
     const orientation = Quaternion.multiply(flightQuat, modelOffset, new Quaternion());
 
@@ -36,7 +38,7 @@ export default function PlaneEntity({ viewer, initialState, onEntityReady }: Pro
       position,
       orientation: orientation as any,
       model: {
-        uri: "/models/lockheed_martin_f-22_raptor.glb",
+        uri: modelUrl,
         minimumPixelSize: 200,
       },
     });
