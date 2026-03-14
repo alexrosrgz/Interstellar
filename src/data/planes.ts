@@ -10,13 +10,13 @@ export const planes: PlaneConfig[] = [
   {
     id: "f22",
     name: "F-22 Raptor",
-    modelUrl: "/models/lockheed_martin_f-22_raptor.glb",
+    modelUrl: "/models/f-22_raptor.glb",
     headingOffset: Math.PI,
   },
   {
     id: "f35",
     name: "F-35 Lightning II",
-    modelUrl: "/models/f-35a_lightning_ii.glb",
+    modelUrl: "/models/f-35b_lightning_ii.glb",
     headingOffset: -Math.PI / 2,
   },
 ];
