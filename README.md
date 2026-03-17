@@ -22,31 +22,6 @@ An interactive 3D globe flight simulator. Pilot a virtual aircraft around Earth,
 | Shift | Descend |
 | Scroll | Zoom in/out |
 
-## Setup
-
-```bash
-npm install
-```
-
-Create a `.env.local` file with your Cesium Ion access token:
-
-```
-VITE_CESIUM_ION_TOKEN=your_token_here
-```
-
-## Development
-
-```bash
-npm run dev
-```
-
-## Build
-
-```bash
-npm run build
-npm run preview
-```
-
 ## Tech Stack
 
 - React 19, TypeScript, Vite
